@@ -1,0 +1,34 @@
+---
+title: "corona"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+japan <- read_csv("https://raw.githubusercontent.com/kaz-ogiwara/covid19/master/data/individuals.csv")
+
+japan <- japan %>% mutate(date = as.Date(str_c(確定年,確定月,確定日, sep="-", collapse = NULL)))
+
+japan_daily <-japan %>% group_by(date, 居住地1) %>% summarize(n = n()) %>% ungroup()
+
+tokyo_daily <- japan_daily %>% filter(居住地1 == "東京都") %>%
+  mutate(place = "tokyo", cum = cumsum(n), rate_of_increase = n/cum)
+kanagawa_daily <- japan_daily %>% filter(居住地1 == "神奈川県") %>%
+  mutate(place = "kanagawa", cum = cumsum(n), rate_of_increase = n/cum)
+osaka_daily <- japan_daily %>% filter(居住地1 == "大阪府") %>%
+  mutate(place = "osaka", cum = cumsum(n), rate_of_increase = n/cum)
+hyogo_daily <- japan_daily %>% filter(居住地1 == "兵庫県") %>%
+  mutate(place = "hyogo", cum = cumsum(n), rate_of_increase = n/cum)
+
+daily <- full_join(tokyo_daily, kanagawa_daily) %>%
+  full_join(osaka_daily) %>%
+  full_join(hyogo_daily)
+
+daily %>%  filter(date >= as.Date("2020-03-10")) %>%
+  ggplot(aes(date, rate_of_increase, group = place, color = place)) +
+  geom_line() + ggtitle("Daily increase rate in the number of patients")
+
+
+```
+
