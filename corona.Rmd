@@ -1,0 +1,28 @@
+---
+title: "corona"
+output: html_document
+---
+
+```{r tokyo}
+library(tidyverse)
+tokyo <- read_csv("https://stopcovid19.metro.tokyo.lg.jp/data/130001_tokyo_covid19_patients.csv")
+problems(tokyo)
+
+tokyo_daily <- tokyo %>% mutate(date = 公表_年月日) %>% group_by(date) %>% summarize(n = n())
+
+tokyo_daily %>% mutate(cum = cumsum(n), rate_of_increase = n/cum) %>%
+  filter(date >= as.Date("2020-03-01")) %>%
+  ggplot(aes(date, rate_of_increase)) +
+  geom_line() + ggtitle("Daily increase in the number of patients (Tokyo)")
+
+```
+
+```{r japan}
+japan <- read_csv("https://raw.githubusercontent.com/kaz-ogiwara/covid19/master/data/individuals.csv")
+
+japan <- japan %>% mutate(date = as.Date(str_c(確定年,確定月,確定日, sep="-", collapse = NULL)), place = 居住地1)
+
+japan_daily <-japan %>% group_by(date, place) %>% summarize(n = n()) %>% ungroup()
+
+
+```
