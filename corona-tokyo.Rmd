@@ -1,0 +1,19 @@
+---
+title: "corona"
+output: html_document
+---
+
+```{r tokyo}
+library(tidyverse)
+tokyo <- read_csv("https://stopcovid19.metro.tokyo.lg.jp/data/130001_tokyo_covid19_patients.csv")
+problems(tokyo)
+
+tokyo_daily <- tokyo %>% mutate(date = 公表_年月日) %>% group_by(date) %>% summarize(n = n())
+
+tokyo_daily %>% mutate(cum = cumsum(n), 日付 = date, 増加率 = n/cum) %>%
+  filter(日付 >= as.Date("2020-03-01")) %>%
+  ggplot(aes(日付, 増加率)) +
+  geom_line() + ggtitle("1日ごとの患者数増加率（東京都）")　+
+  theme_bw(base_family = "HiraKakuProN-W3")
+
+```
