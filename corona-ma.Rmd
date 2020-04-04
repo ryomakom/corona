@@ -1,0 +1,36 @@
+---
+title: "corona-ma"
+output: github_document
+---
+
+```{r}
+
+
+library(tidyverse)
+library(zoo)
+
+
+uscounty <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+
+ma_main_counties <- uscounty %>%
+  filter(state == "Massachusetts") %>%
+  filter(county == "Norfolk" |
+         county == "Suffolk" | 
+         county == "Essex" |
+         county == "Middlesex" |
+         county == "Bristol" |
+         county == "Plymouth")
+
+
+ma_main_counties %>%  filter(date >= "2020-03-01") %>%
+  ggplot(aes(date, cases, group = county, color = county)) +
+  geom_line() + scale_y_log10() +
+  ggtitle("Cases in Coastal Counties of MA") + labs(y = "Confirmed Cases")
+
+ma_main_counties %>% filter(date >= "2020-03-15") %>% group_by(county) %>%
+    mutate(increase = cases-lag(cases), increase_rate = increase/lag(cases),
+           increase_rate = rollmean(increase_rate, 7, fill = NA)) %>%
+    ggplot(aes(date, increase_rate, group = county, color = county)) +
+    geom_line() + ggtitle("Moving Avarage of the Increase Rate in Cases (Coastal Counties of MA)")
+```
+
