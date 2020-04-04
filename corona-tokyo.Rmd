@@ -5,15 +5,24 @@ output: html_document
 
 ```{r tokyo}
 library(tidyverse)
+library(zoo)
+
+
 tokyo <- read_csv("https://stopcovid19.metro.tokyo.lg.jp/data/130001_tokyo_covid19_patients.csv")
 problems(tokyo)
 
-tokyo_daily <- tokyo %>% mutate(date = 公表_年月日) %>% group_by(date) %>% summarize(n = n())
+tokyo_daily <- tokyo %>%
+  mutate(date = 公表_年月日) %>%
+  group_by(date) %>% summarize(n = n())
 
-tokyo_daily %>% mutate(cum = cumsum(n), 日付 = date, 増加率 = n/cum) %>%
+tokyo_daily %>% mutate(cum = cumsum(n),
+                       日付 = date,
+                       日ごと = n/cum,
+                       移動平均 = rollmean(日ごと, 7, fill = NA)) %>%
+  pivot_longer(日ごと:移動平均, names_to = "増加率", values_to = "rate") %>%
   filter(日付 >= as.Date("2020-03-01")) %>%
-  ggplot(aes(日付, 増加率)) +
-  geom_line() + ggtitle("1日ごとの患者数増加率（東京都）")　+
+  ggplot(aes(日付,rate, group=増加率,color=増加率)) +
+  geom_line() + ggtitle("新型コロナ患者数の増加率（東京都）")　+
   theme_bw(base_family = "HiraKakuProN-W3")
 
 ```
