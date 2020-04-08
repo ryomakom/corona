@@ -27,9 +27,10 @@ ma_main_counties %>%  filter(date >= "2020-03-01") %>%
   geom_line() + scale_y_log10() +
   ggtitle("Cases in Coastal Counties of MA") + labs(y = "Confirmed Cases")
 
-ma_main_counties %>% filter(date >= "2020-03-15") %>% group_by(county) %>%
+ma_main_counties %>% group_by(county) %>%
     mutate(increase = cases-lag(cases), increase_rate = increase/lag(cases),
            increase_rate = rollmean(increase_rate, 7, fill = NA)) %>%
+    filter(date >= "2020-03-15") %>% 
     ggplot(aes(date, increase_rate, group = county, color = county)) +
     geom_line() + ggtitle("Moving Avarage of the Increase Rate in Cases (Coastal Counties of MA)")
 ```
