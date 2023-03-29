@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="朝日新聞デジタル機動報道部　小宮山亮磨" />
+
+<meta name="date" content="2023-03-31" />
+
+<title>大谷翔平の投球データでRの基本を勉強しよう</title>
+
+<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.6.0/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.27/datatables.js"></script>
+<link href="site_libs/dt-core-1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.12.1/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.12.1/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="site_style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">r_seminar.R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="about.html">about</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">大谷翔平の投球データでRの基本を勉強しよう</h1>
+<h4 class="author">朝日新聞デジタル機動報道部　小宮山亮磨</h4>
+<h4 class="date">2023-03-31</h4>
+
+</div>
+
+
+<div id="これって何" class="section level2">
+<h2>これって何？</h2>
+<p>朝日新聞のデータ記者有志勉強会の資料。大リーガー大谷翔平の投球データをもとに、データ分析ソフトRを学ぶためのもの。</p>
+<p>以下の手順に従ってコード（四角く囲まれたグレーのエリアに書いてある呪文みたいなやつ）を、RStudioというソフト上で打ち込めば、Rの基本的な使い方を体験できるようになっている。なお、分析対象となる大谷選手の投球データは<a
+href="https://drive.google.com/file/d/1DlxaZT1h9USGnu5AhorJdQiVu0GJZLj_/view?usp=sharing">こちら</a>からダウンロードできる。</p>
+<p>RやRStudioのインストール方法については、ここでは説明しない。やり方はググるといろいろ見つかるはず（たとえば<a
+href="https://www.tku.ac.jp/iss/guide/classroom/soft/rrstudio-desktop.html">ここ</a>とか）。</p>
+<p>なお、データが含んでいるさまざまな数字がそれぞれ何を示しているのかは、<a
+href="https://baseballsavant.mlb.com/csv-docs">こちら</a>に書いてある。</p>
+</div>
+<div id="必要なパッケージを読み込む" class="section level2">
+<h2>必要なパッケージを読み込む</h2>
+<p>データ加工や可視化につかういろんな道具（関数と呼ばれる）は、「パッケージ」と呼ばれるものにまとめて入っている。</p>
+<p>もっともよく使われるのはtidyverseというもの。これがあれば基本的なことは何でもできる。
+baseballrは大リーグデータを取得するのに使う。lubridateは日付や時間の処理に便利。
+DTは表作成のため。</p>
+<p>library(hogehoge)という関数は、hogehogeというパッケージを使えるようにしなさい、という命令を意味している。</p>
+<p>それぞれのパッケージがRStudioに入っていないときは、別途インストールする必要がある。インストールするための関数もあるが、今回は省略。</p>
+<pre class="r"><code>library(tidyverse)
+library(baseballr)
+library(lubridate)
+library(DT)</code></pre>
+</div>
+<div id="データを読み込む" class="section level2">
+<h2>データを読み込む</h2>
+<p>下記のコードでは、「data」というフォルダ内にある「ohtani_p.csv」というファイルを、read_csvという関数（命令）を使って読み込んで、「ohtani_p」というデータテーブルに入力（代入）している。</p>
+<p>baseballrのパッケージを使って、大リーグのデータベースから直接読み込むこともできる。</p>
+<pre class="r"><code>ohtani_p &lt;- read_csv(&quot;data/ohtani_p.csv&quot;)
+
+
+# baseballrのパッケージがあれば、以下のコードでデータを取得できる。「660271」というのは大谷翔平に割り振られた選手コード。
+#ohtani_p &lt;- bind_rows(scrape_statcast_savant_pitcher(&quot;2021-04-01&quot;,
+#                                                     &quot;2021-11-30&quot;,
+#                                                     pitcherid = 660271),
+#                      scrape_statcast_savant_pitcher(&quot;2022-04-01&quot;,
+#                                                     &quot;2022-11-30&quot;,
+#                                                     pitcherid = 660271))</code></pre>
+</div>
+<div id="どんなデータなのか見てみる" class="section level2">
+<h2>どんなデータなのか見てみる</h2>
+<p>viewという関数を使うと、データの全体をチェックできる。</p>
+<p>下記のプログラムは、「ohtani_p」というデータテーブルを、view()という関数にかけてください、という命令を意味している。「%&gt;%」は「パイプ演算子」と呼ばれるもので、ある素材を次の工程に渡すための合図。「A
+%&gt;% B() %&gt;%
+C()」で、AをBしたうえでさらにCする、という意味になる。「C(B(A))」と書くこともできるが、いくつも命令が重なるとどんどんわかりにくくなるので、%&gt;%を使ったほうが便利。</p>
+<pre class="r"><code>ohtani_p %&gt;% 
+  view()</code></pre>
+<p>こんな感じのものが見えるはず。</p>
+<p><img src="data/view.jpg" width="80%" /></p>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-7050fb61a4146a2332fc" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-7050fb61a4146a2332fc">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],["FF","FS","ST","FF","FS","ST","ST","ST","ST","ST","FS","ST","FF","ST","ST","ST","ST","FS","ST","FS"],["2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26","2021-09-26"],[99.2,91.8,85.5,97.4,90.8,85.2,84.4,85.3,84.3,83,90.6,83.8,96.6,84.3,85,85.5,84.9,90.5,84.2,91.1],[-2.15,-2.1,-2.32,-1.98,-2,-2.27,-2.33,-2.3,-2.22,-2.33,-2.15,-2.24,-2.03,-2.21,-2.29,-2.44,-2.25,-2.01,-2.25,-1.81],[5.88,5.82,5.74,5.86,5.89,5.79,5.81,5.71,5.77,5.74,5.9,5.79,6.01,5.84,5.8,5.8,5.76,5.87,5.79,5.96],["Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei","Ohtani, Shohei"],[641343,641343,641343,641343,641343,608596,608596,672284,672284,672284,641584,641584,641584,641584,647351,647351,647351,647351,571745,571745],[660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271],["strikeout",null,null,null,null,"field_out",null,"home_run",null,null,"strikeout",null,null,null,"field_out",null,null,null,"strikeout",null],["foul_tip","foul","swinging_strike","foul","ball","hit_into_play","ball","hit_into_play","called_strike","ball","called_strike","swinging_strike","ball","foul","hit_into_play","ball","called_strike","ball","swinging_strike","ball"],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[2,13,8,5,13,6,14,1,4,11,11,5,1,5,8,11,5,13,1,14],["Jake Bauers strikes out on a foul tip.","Jake Bauers strikes out on a foul tip.","Jake Bauers strikes out on a foul tip.","Jake Bauers strikes out on a foul tip.","Jake Bauers strikes out on a foul tip.","Tom Murphy grounds out, second baseman David Fletcher to first baseman Jared Walsh.","Tom Murphy grounds out, second baseman David Fletcher to first baseman Jared Walsh.","Jarred Kelenic homers (14) on a fly ball to right field.","Jarred Kelenic homers (14) on a fly ball to right field.","Jarred Kelenic homers (14) on a fly ball to right field.","Jake Fraley called out on strikes.","Jake Fraley called out on strikes.","Jake Fraley called out on strikes.","Jake Fraley called out on strikes.","Abraham Toro flies out to center fielder Brandon Marsh.","Abraham Toro flies out to center fielder Brandon Marsh.","Abraham Toro flies out to center fielder Brandon Marsh.","Abraham Toro flies out to center fielder Brandon Marsh.","Mitch Haniger strikes out swinging.","Mitch Haniger strikes out swinging."],["R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R"],["L","L","L","L","L","R","R","L","L","L","L","L","L","L","L","L","L","L","R","R"],["R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R"],["LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA","LAA"],["SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA","SEA"],["S","S","S","S","B","X","B","X","S","B","S","S","B","S","X","B","S","B","S","B"],[2,null,null,null,null,4,null,null,null,null,2,null,null,null,8,null,null,null,2,null],[null,null,null,null,null,"ground_ball",null,"fly_ball",null,null,null,null,null,null,"fly_ball",null,null,null,null,null],[1,1,1,1,0,1,0,1,1,0,1,1,0,0,2,1,1,0,3,2],[2,2,1,0,0,0,0,1,0,0,2,1,1,0,1,1,0,0,2,2],[2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021],[-0.13,-1.08,0.96,-0.4,-0.94,1.24,1.41,0.89,1.37,1.37,-0.05,1.04,-0.26,0.79,1.2,1.5,1.37,-1.24,1.46,-1],[1.03,0.33,0.5,1.01,0.21,0.19,0.1,0.8,0.38,0.39,0.51,0.75,0.91,0.55,0.32,0.43,0.53,-0.28,0.28,0.19],[-0.08,-0.75,0.14,0.26,-0.36,0.35,0.47,-0.35,-0.37,-1.33,-0.89,-0.17,-0.47,-0.19,-0.12,-0.76,0.13,-0.97,-0.43,1.33],[3.38,1.44,1.84,2.78,0.03,2.17,1.32,2.88,2.15,3.19,2.58,2.64,3.13,2.17,1.88,3.46,2.6,2.24,3.09,1.18],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,664034,664034,664034,664034,664034,664034],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,572122,572122,572122,572122,572122,572122],[2,2,2,2,2,1,1,1,1,1,0,0,0,0,2,2,2,2,1,1],[7,7,7,7,7,7,7,7,7,7,7,7,7,7,6,6,6,6,6,6],["Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top","Top"],[null,null,null,null,null,143.2,null,217.89,null,null,null,null,null,null,123.25,null,null,null,null,null],[null,null,null,null,null,139.73,null,65.38,null,null,null,null,null,null,69.41,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[6.00338089589217,5.79535925752498,3.86718359293586,6.99286751422974,6.19285681831021,3.70611864622944,3.7263101022629,2.80783114672156,1.5865685006551,-0.389498909406225,3.26109843630365,2.7570541699542,4.77421474185718,3.16751476857952,2.72851643208404,0.943609207733244,2.83982495500566,5.31812307387274,1.34183139586055,10.1367241990528],[-144.41556357314,-133.458014293552,-124.416045961023,-141.751805923131,-131.740189296487,-124.155701096376,-122.882831100619,-124.236656038274,-122.818705760734,-120.891795607982,-131.843810093318,-122.088658843833,-140.682371740794,-122.816752041265,-123.818275062567,-124.581200658353,-123.590846932471,-131.666090447248,-122.6011300803,-132.23417758059],[-3.87628480441796,-5.96209108344042,-3.94017398187072,-5.19800457429352,-9.17840094803181,-2.59819067603356,-4.31517497184216,-1.99995567967287,-2.81355748581846,-0.114721043372976,-3.41816838529858,-2.40340882241053,-4.28477935071572,-3.29671139115359,-3.55068191064877,-0.115068636479062,-2.1481485370635,-2.45979588853975,-0.420516915777383,-6.52446977989461],[-3.17959514817136,-14.176446252827,9.20416914231688,-6.87484435009913,-12.3478755365416,12.0750667984371,13.5586739492589,8.70599227910268,13.4689791258161,13.5048047142569,-1.28685312278924,9.86872815967315,-4.47184219957614,7.3826116938625,11.7622453134002,15.4144053575103,13.4840405236689,-15.5207954678679,14.3770302278099,-13.9608437411652],[32.9378132071913,30.4882093559082,25.4308511616184,29.5696120630425,31.4901305468855,24.6573206321212,24.452521731423,24.4350791410082,25.5372980145457,24.2096665485439,30.6433712580713,23.3282265413677,30.4721496906662,23.4675955647921,24.5937038570645,25.2320543885796,25.1684377661251,31.720572824306,24.9192375554062,29.0858163536027],[-17.0489010473984,-27.0565406066861,-26.3653576165728,-17.4826579308564,-27.765807989205,-29.9441279685137,-30.4760853727628,-23.7155444128726,-28.0199710143142,-28.5833867420341,-25.7349070922351,-24.3621881036646,-19.2709764523035,-26.2004551916421,-28.4139340700898,-27.8582417141084,-26.5006835229771,-35.0798228419264,-29.4806042899067,-28.6842714785493],[3.41,3.41,3.41,3.41,3.22,3.41,3.26,3.41,3.33,3.3,3.19,3.37,3.16,3.37,3.37,3.03,3.07,3.02,3.47,3.22],[1.56,1.56,1.56,1.56,1.56,1.56,1.56,1.56,1.56,1.56,1.54,1.53,1.52,1.53,1.53,1.53,1.53,1.53,1.59,1.59],[null,1,null,231,null,24,null,399,null,null,null,null,null,166,321,null,null,null,null,null],[null,65.7,null,75.8,null,68.1,null,104.5,null,null,null,null,null,77.5,96,null,null,null,null,null],[null,-48,null,42,null,-2,null,30,null,null,null,null,null,70,44,null,null,null,null,null],[100,92.5,85.9,98.7,91.2,86.2,85,85.9,85.1,83.5,91.1,84.7,97.7,85.2,86,86.4,85.5,91.1,85,91.8],[2095,1293,2358,2008,1347,2148,2249,2303,2241,2261,1022,2170,1826,2185,2305,2409,2384,1224,2361,1293],[6.7,6.9,6.6,6.8,7,6.8,6.7,6.6,6.8,6.6,6.8,6.7,6.8,6.7,6.9,6.8,6.7,6.9,6.8,6.9],[632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327,632327],[660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271,660271],[435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559,435559],[665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120,665120],[664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058,664058],[608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686,608686],[650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859,650859],[594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838,594838],[669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016,669016],[501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571,501571],[53.82,53.62,53.9,53.71,53.51,53.68,53.84,53.9,53.67,53.89,53.73,53.76,53.71,53.79,53.63,53.7,53.77,53.55,53.67,53.57],[null,null,null,null,null,0.106,null,0.88,null,null,null,null,null,null,0.011,null,null,null,null,null],[null,null,null,null,null,0.103,null,1.749,null,null,null,null,null,null,0.015,null,null,null,null,null],[0,null,null,null,null,0,null,2,null,null,0,null,null,null,0,null,null,null,0,null],[1,null,null,null,null,1,null,1,null,null,1,null,null,null,1,null,null,null,1,null],[0,null,null,null,null,0,null,0,null,null,0,null,null,null,0,null,null,null,0,null],[0,null,null,null,null,0,null,3,null,null,0,null,null,null,0,null,null,null,0,null],[null,null,null,null,null,2,null,6,null,null,null,null,null,null,3,null,null,null,null,null],[50,50,50,50,50,49,49,48,48,48,47,47,47,47,42,42,42,42,41,41],[5,4,3,2,1,2,1,3,2,1,4,3,2,1,4,3,2,1,6,5],["4-Seam Fastball","Split-Finger","Sweeper","4-Seam Fastball","Split-Finger","Sweeper","Sweeper","Sweeper","Sweeper","Sweeper","Split-Finger","Sweeper","4-Seam Fastball","Sweeper","Sweeper","Sweeper","Sweeper","Split-Finger","Sweeper","Split-Finger"],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],["Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Infield shift","Standard","Standard","Standard","Infield shift","Infield shift","Infield shift","Infield shift","Standard","Standard"],["Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard","Standard"],[214,229,82,211,227,70,76,76,73,68,240,73,208,88,78,73,77,230,74,225],[0.019,0,0,0,0,0.028,0,-0.204,0,0,0.043,0,0,0,0.071,0,0,0,0.072,0],[-0.073,0,-0.027,-0.02,0.016,-0.189,0.026,1.006,-0.032,0.026,-0.174,-0.057,0.027,-0.038,-0.524,0.094,-0.077,0.056,-0.622,0.183]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>...1<\/th>\n      <th>pitch_type<\/th>\n      <th>game_date<\/th>\n      <th>release_speed<\/th>\n      <th>release_pos_x<\/th>\n      <th>release_pos_z<\/th>\n      <th>player_name<\/th>\n      <th>batter<\/th>\n      <th>pitcher<\/th>\n      <th>events<\/th>\n      <th>description<\/th>\n      <th>spin_dir<\/th>\n      <th>spin_rate_deprecated<\/th>\n      <th>break_angle_deprecated<\/th>\n      <th>break_length_deprecated<\/th>\n      <th>zone<\/th>\n      <th>des<\/th>\n      <th>game_type<\/th>\n      <th>stand<\/th>\n      <th>p_throws<\/th>\n      <th>home_team<\/th>\n      <th>away_team<\/th>\n      <th>type<\/th>\n      <th>hit_location<\/th>\n      <th>bb_type<\/th>\n      <th>balls<\/th>\n      <th>strikes<\/th>\n      <th>game_year<\/th>\n      <th>pfx_x<\/th>\n      <th>pfx_z<\/th>\n      <th>plate_x<\/th>\n      <th>plate_z<\/th>\n      <th>on_3b<\/th>\n      <th>on_2b<\/th>\n      <th>on_1b<\/th>\n      <th>outs_when_up<\/th>\n      <th>inning<\/th>\n      <th>inning_topbot<\/th>\n      <th>hc_x<\/th>\n      <th>hc_y<\/th>\n      <th>tfs_deprecated<\/th>\n      <th>tfs_zulu_deprecated<\/th>\n      <th>fielder_2<\/th>\n      <th>umpire<\/th>\n      <th>sv_id<\/th>\n      <th>vx0<\/th>\n      <th>vy0<\/th>\n      <th>vz0<\/th>\n      <th>ax<\/th>\n      <th>ay<\/th>\n      <th>az<\/th>\n      <th>sz_top<\/th>\n      <th>sz_bot<\/th>\n      <th>hit_distance_sc<\/th>\n      <th>launch_speed<\/th>\n      <th>launch_angle<\/th>\n      <th>effective_speed<\/th>\n      <th>release_spin_rate<\/th>\n      <th>release_extension<\/th>\n      <th>game_pk<\/th>\n      <th>pitcher_1<\/th>\n      <th>fielder_2_1<\/th>\n      <th>fielder_3<\/th>\n      <th>fielder_4<\/th>\n      <th>fielder_5<\/th>\n      <th>fielder_6<\/th>\n      <th>fielder_7<\/th>\n      <th>fielder_8<\/th>\n      <th>fielder_9<\/th>\n      <th>release_pos_y<\/th>\n      <th>estimated_ba_using_speedangle<\/th>\n      <th>estimated_woba_using_speedangle<\/th>\n      <th>woba_value<\/th>\n      <th>woba_denom<\/th>\n      <th>babip_value<\/th>\n      <th>iso_value<\/th>\n      <th>launch_speed_angle<\/th>\n      <th>at_bat_number<\/th>\n      <th>pitch_number<\/th>\n      <th>pitch_name<\/th>\n      <th>home_score<\/th>\n      <th>away_score<\/th>\n      <th>bat_score<\/th>\n      <th>fld_score<\/th>\n      <th>post_away_score<\/th>\n      <th>post_home_score<\/th>\n      <th>post_bat_score<\/th>\n      <th>post_fld_score<\/th>\n      <th>if_fielding_alignment<\/th>\n      <th>of_fielding_alignment<\/th>\n      <th>spin_axis<\/th>\n      <th>delta_home_win_exp<\/th>\n      <th>delta_run_exp<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,4,5,6,8,9,16,24,26,27,28,29,30,31,32,33,34,35,36,37,39,40,43,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,81,82,83,84,85,86,87,88,91,92,93]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="欲しい列だけを残す" class="section level2">
+<h2>欲しい列だけを残す</h2>
+<p>データの種類（列）が多すぎるので、必要なものだけ残したい。selectという関数で、試合の日付（game_date）、球種（pitch_name）、球速（release_speed）、縦横それぞれの変化量（pfx_xとpfx_z）だけを選ぶ。</p>
+<p>そうして作ったデータテーブルを、「ohtani_p_simple」に入力する。</p>
+<pre class="r"><code>ohtani_p_simple &lt;- ohtani_p %&gt;% # 元データohtani_pを加工したものをohtani_p_simpleに入力する
+  select(game_date, # 試合の日付と
+         pitch_name, # 球種と
+         release_speed, # 球速と
+         pfx_x, # 横方向の変化量と
+         pfx_z) # 縦方向の変化量を選ぶ
+
+ohtani_p_simple # ohtani_p_simpleの最初のところを表示する</code></pre>
+<pre><code>## # A tibble: 4,656 × 5
+##    game_date  pitch_name      release_speed pfx_x pfx_z
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 2021-09-26 4-Seam Fastball          99.2 -0.13  1.03
+##  2 2021-09-26 Split-Finger             91.8 -1.08  0.33
+##  3 2021-09-26 Sweeper                  85.5  0.96  0.5 
+##  4 2021-09-26 4-Seam Fastball          97.4 -0.4   1.01
+##  5 2021-09-26 Split-Finger             90.8 -0.94  0.21
+##  6 2021-09-26 Sweeper                  85.2  1.24  0.19
+##  7 2021-09-26 Sweeper                  84.4  1.41  0.1 
+##  8 2021-09-26 Sweeper                  85.3  0.89  0.8 
+##  9 2021-09-26 Sweeper                  84.3  1.37  0.38
+## 10 2021-09-26 Sweeper                  83    1.37  0.39
+## # … with 4,646 more rows</code></pre>
+</div>
+<div id="新しい列を作る" class="section level2">
+<h2>新しい列を作る</h2>
+<p>球速がマイルで、変化量がフィートで表示されているので、メートル法の住人には分かりにくい。mutateという関数でメートル法表示のデータを作る。球速に1.60934をかけ算するとキロ表示になり、変化量に30.48をかけるとセンチ表示になる。こうして作ったデータテーブルで「ohtani_p_simple」を上書きする。</p>
+<pre class="r"><code>ohtani_p_simple &lt;- ohtani_p_simple %&gt;% # ohtani_p_simpleを加工したもので上書きする
+  mutate(release_speed_km = release_speed * 1.60934,  # マイル表示の球速をキロ表示に変換した列を作る
+         pfx_x_cm=pfx_x * 30.48, # フィート表示の変化量をセンチ表示に変換した列を作る
+         pfx_z_cm=pfx_z * 30.48) 
+
+ohtani_p_simple</code></pre>
+<pre><code>## # A tibble: 4,656 × 8
+##    game_date  pitch_name      release_speed pfx_x pfx_z releas…¹ pfx_x…² pfx_z…³
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 2021-09-26 4-Seam Fastball          99.2 -0.13  1.03     160.   -3.96   31.4 
+##  2 2021-09-26 Split-Finger             91.8 -1.08  0.33     148.  -32.9    10.1 
+##  3 2021-09-26 Sweeper                  85.5  0.96  0.5      138.   29.3    15.2 
+##  4 2021-09-26 4-Seam Fastball          97.4 -0.4   1.01     157.  -12.2    30.8 
+##  5 2021-09-26 Split-Finger             90.8 -0.94  0.21     146.  -28.7     6.40
+##  6 2021-09-26 Sweeper                  85.2  1.24  0.19     137.   37.8     5.79
+##  7 2021-09-26 Sweeper                  84.4  1.41  0.1      136.   43.0     3.05
+##  8 2021-09-26 Sweeper                  85.3  0.89  0.8      137.   27.1    24.4 
+##  9 2021-09-26 Sweeper                  84.3  1.37  0.38     136.   41.8    11.6 
+## 10 2021-09-26 Sweeper                  83    1.37  0.39     134.   41.8    11.9 
+## # … with 4,646 more rows, and abbreviated variable names ¹​release_speed_km,
+## #   ²​pfx_x_cm, ³​pfx_z_cm</code></pre>
+</div>
+<div id="欲しい行だけを残す" class="section level2">
+<h2>欲しい行だけを残す</h2>
+<p>いろんな球種のうち、直球の行（横方向に並んでいるデータ）だけを残す。filterという関数を使う。</p>
+<pre class="r"><code>ohtani_p_simple %&gt;% 
+  filter(pitch_name == &quot;4-Seam Fastball&quot;) # 直球（４シーム）のデータだけをフィルタリングで選ぶ。「=」を二つ並べる（一つじゃダメ！）ことに注意。</code></pre>
+<pre><code>## # A tibble: 1,617 × 8
+##    game_date  pitch_name      release_speed pfx_x pfx_z releas…¹ pfx_x…² pfx_z…³
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 2021-09-26 4-Seam Fastball          99.2 -0.13  1.03     160.   -3.96    31.4
+##  2 2021-09-26 4-Seam Fastball          97.4 -0.4   1.01     157.  -12.2     30.8
+##  3 2021-09-26 4-Seam Fastball          96.6 -0.26  0.91     155.   -7.92    27.7
+##  4 2021-09-26 4-Seam Fastball          98.6 -0.41  1.1      159.  -12.5     33.5
+##  5 2021-09-26 4-Seam Fastball          97.5 -0.06  0.9      157.   -1.83    27.4
+##  6 2021-09-26 4-Seam Fastball          99   -0.5   1.12     159.  -15.2     34.1
+##  7 2021-09-26 4-Seam Fastball          98.9 -0.55  1.15     159.  -16.8     35.1
+##  8 2021-09-26 4-Seam Fastball          98.4 -0.18  1.18     158.   -5.49    36.0
+##  9 2021-09-26 4-Seam Fastball          98.2 -0.1   0.82     158.   -3.05    25.0
+## 10 2021-09-26 4-Seam Fastball          95.5 -0.52  1.1      154.  -15.8     33.5
+## # … with 1,607 more rows, and abbreviated variable names ¹​release_speed_km,
+## #   ²​pfx_x_cm, ³​pfx_z_cm</code></pre>
+</div>
+<div id="並べ替える" class="section level2">
+<h2>並べ替える</h2>
+<p>球速に応じて並び変える。arrangeという関数を使うと、デフォルトでは「小さい順」に並ぶ。descという関数を使うと、「大きい順」になる。</p>
+<pre class="r"><code># 下位
+ohtani_p_simple %&gt;% 
+  filter(pitch_name == &quot;4-Seam Fastball&quot;) %&gt;% 
+  arrange(release_speed_km) # 球速が「小さい順」に並べる</code></pre>
+<pre><code>## # A tibble: 1,617 × 8
+##    game_date  pitch_name      release_speed pfx_x pfx_z releas…¹ pfx_x…² pfx_z…³
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 2021-05-19 4-Seam Fastball          84.7 -0.49  1.25     136. -14.9      38.1
+##  2 2021-05-19 4-Seam Fastball          85.8 -0.59  1.44     138. -18.0      43.9
+##  3 2021-08-25 4-Seam Fastball          87.3 -0.44  1.37     140. -13.4      41.8
+##  4 2021-05-19 4-Seam Fastball          87.6 -0.45  1.48     141. -13.7      45.1
+##  5 2021-05-28 4-Seam Fastball          88.3  0.01  1.58     142.   0.305    48.2
+##  6 2021-05-19 4-Seam Fastball          88.4 -0.12  1.44     142.  -3.66     43.9
+##  7 2021-05-19 4-Seam Fastball          88.5 -0.33  1.43     142. -10.1      43.6
+##  8 2021-05-19 4-Seam Fastball          89   -0.35  1.57     143. -10.7      47.9
+##  9 2021-05-28 4-Seam Fastball          89.4  0.38  1.48     144.  11.6      45.1
+## 10 2021-05-19 4-Seam Fastball          89.5 -0.42  1.53     144. -12.8      46.6
+## # … with 1,607 more rows, and abbreviated variable names ¹​release_speed_km,
+## #   ²​pfx_x_cm, ³​pfx_z_cm</code></pre>
+<pre class="r"><code># 上位
+ohtani_p_simple %&gt;% 
+  filter(pitch_name == &quot;4-Seam Fastball&quot;) %&gt;% 
+  arrange(desc(release_speed_km)) # 球速が「大きい順」に並べる</code></pre>
+<pre><code>## # A tibble: 1,617 × 8
+##    game_date  pitch_name      release_speed pfx_x pfx_z releas…¹ pfx_x…² pfx_z…³
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 2022-09-10 4-Seam Fastball          101. -0.21  1.13     163.   -6.40    34.4
+##  2 2022-07-22 4-Seam Fastball          101. -0.12  1.1      163.   -3.66    33.5
+##  3 2021-04-04 4-Seam Fastball          101. -0.44  1.44     163.  -13.4     43.9
+##  4 2022-06-29 4-Seam Fastball          101  -0.27  1.16     163.   -8.23    35.4
+##  5 2022-06-09 4-Seam Fastball          101  -0.26  1.23     163.   -7.92    37.5
+##  6 2021-04-04 4-Seam Fastball          101. -0.41  1.47     162.  -12.5     44.8
+##  7 2022-07-06 4-Seam Fastball          101. -0.37  1.66     162.  -11.3     50.6
+##  8 2022-05-18 4-Seam Fastball          101. -0.41  0.99     162.  -12.5     30.2
+##  9 2022-05-18 4-Seam Fastball          101.  0     0.87     162.    0       26.5
+## 10 2021-04-04 4-Seam Fastball          101. -0.23  1.37     162.   -7.01    41.8
+## # … with 1,607 more rows, and abbreviated variable names ¹​release_speed_km,
+## #   ²​pfx_x_cm, ³​pfx_z_cm</code></pre>
+</div>
+<div id="グラフを描く" class="section level2">
+<h2>グラフを描く</h2>
+<p>いよいよ可視化！</p>
+<div id="まずは登板日ごとの球速の推移" class="section level3">
+<h3>まずは登板日ごとの球速の推移</h3>
+<p>横軸に登板日、縦軸に球速（キロ表示したもの）をとった散布図を描く。このさい、球種ごとに色分けする。ggplotという関数は、グラフを描けという命令。aes()という関数で、どのデータを可視化するのかを指定する。</p>
+<pre class="r"><code>ohtani_p_simple %&gt;%
+  ggplot(aes(x=game_date, # 横軸に登板日を
+             y=release_speed_km, # 縦軸に球速をとり
+             color=pitch_name)) + # 球種ごとに色分けして
+  geom_point() # 散布図を描く</code></pre>
+<p><img src="R%E7%A4%BE%E5%86%85%E5%8B%89%E5%BC%B7%E4%BC%9A%E7%94%A8_files/figure-html/plot1-1.png" width="672" /></p>
+<p>このグラフを見ると、①球速が全体的に2022年のほうが21年より速そうなこと、②1年にはまったく投げていなかったシンカーが22年に多く投げられるようになり、また直球が減っていること――がわかる。</p>
+</div>
+<div id="球種ごとの球速" class="section level3">
+<h3>球種ごとの球速</h3>
+<p>上記の①を確かめるために、登板日ごと、また球種ごとに平均球速を計算した上で、折れ線グラフにする。group_byという関数を使って、登板日と球種ごとのグループを作ることを宣言してから、平均球速を出す。</p>
+<pre class="r"><code>ohtani_p_simple %&gt;% 
+  group_by(game_date,
+           pitch_name) %&gt;% # 登板日と球種ごとに「グループ」を作って
+  summarize(average_speed=mean(release_speed_km)) # 各グループで球速(release_speed_km)の平均値(mean)を計算して、average_speedと名付けた列にその値を入力する</code></pre>
+<pre><code>## `summarise()` has grouped output by
+## &#39;game_date&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 257 × 3
+## # Groups:   game_date [51]
+##    game_date  pitch_name      average_speed
+##    &lt;date&gt;     &lt;chr&gt;                   &lt;dbl&gt;
+##  1 2021-04-04 4-Seam Fastball          158.
+##  2 2021-04-04 Curveball                122.
+##  3 2021-04-04 Cutter                   145.
+##  4 2021-04-04 Split-Finger             145.
+##  5 2021-04-04 Sweeper                  131.
+##  6 2021-04-20 4-Seam Fastball          154.
+##  7 2021-04-20 Curveball                120.
+##  8 2021-04-20 Cutter                   140.
+##  9 2021-04-20 Split-Finger             144.
+## 10 2021-04-20 Sweeper                  130.
+## # … with 247 more rows</code></pre>
+<pre class="r"><code># 続いて、これをグラフ化する
+ohtani_p_simple %&gt;% 
+  group_by(game_date,
+           pitch_name) %&gt;% 
+  summarize(average_speed=mean(release_speed_km)) %&gt;% # ここまでは上記と同じ
+  ggplot(aes(x=game_date, # 横軸に登板日を
+             y=average_speed, # 縦軸に平均球速をとり
+             color=pitch_name)) + # 球種ゴロに色分けして
+  geom_line() # 折れ線グラフを描く</code></pre>
+<pre><code>## `summarise()` has grouped output by
+## &#39;game_date&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<p><img src="R%E7%A4%BE%E5%86%85%E5%8B%89%E5%BC%B7%E4%BC%9A%E7%94%A8_files/figure-html/plot2-1.png" width="672" /></p>
+</div>
+<div id="球種ごとの球数" class="section level3">
+<h3>球種ごとの球数</h3>
+<p>上記②を確かめるために、①と同様に登板日と球種ごとにグループを作った上で、それぞれの球数を
+カウントする。数えるのにはn()という関数を使う。そのうえで棒グラフを描く。</p>
+<pre class="r"><code>ohtani_p_simple %&gt;% 
+  group_by(game_date,
+           pitch_name) %&gt;% 
+  summarize(number=n()) # 各グループでの数を数え、numberという列に入力する</code></pre>
+<pre><code>## `summarise()` has grouped output by
+## &#39;game_date&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 257 × 3
+## # Groups:   game_date [51]
+##    game_date  pitch_name      number
+##    &lt;date&gt;     &lt;chr&gt;            &lt;int&gt;
+##  1 2021-04-04 4-Seam Fastball     52
+##  2 2021-04-04 Curveball            2
+##  3 2021-04-04 Cutter               1
+##  4 2021-04-04 Split-Finger        16
+##  5 2021-04-04 Sweeper             21
+##  6 2021-04-20 4-Seam Fastball     31
+##  7 2021-04-20 Curveball           12
+##  8 2021-04-20 Cutter              19
+##  9 2021-04-20 Split-Finger         9
+## 10 2021-04-20 Sweeper              9
+## # … with 247 more rows</code></pre>
+<pre class="r"><code>ohtani_p_simple %&gt;% 
+  group_by(game_date,
+           pitch_name) %&gt;% 
+  summarize(number=n()) %&gt;% # ここまでは上と同じ
+  ggplot(aes(x=game_date, # 横軸に登板日を
+             y=number, # 縦軸に球数をとり
+             fill=pitch_name)) + # 球種ごとに色分けしたうえで
+  geom_bar(stat=&quot;identity&quot;) # 棒グラフを描く。stat=&quot;identity&quot;と入れるのを忘れない</code></pre>
+<pre><code>## `summarise()` has grouped output by
+## &#39;game_date&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<p><img src="R%E7%A4%BE%E5%86%85%E5%8B%89%E5%BC%B7%E4%BC%9A%E7%94%A8_files/figure-html/plot3-1.png" width="672" /></p>
+</div>
+<div id="球種ごとの変化量" class="section level3">
+<h3>球種ごとの変化量</h3>
+<p>ところでそれぞれの球種って、どんなふうに変化するの？というのを可視化する。</p>
+<p>ボールの変化量は捕手側から見た数字（つまり横方向は右に行くほどプラス、縦方向は上に行くほどプラス）となっている。これを散布図で球種ごとに色分けして示す。</p>
+<pre class="r"><code>ohtani_p_simple %&gt;%
+  ggplot(aes(x=pfx_x_cm, # 横軸に横方向の変化量を
+             y=pfx_z_cm, # 縦軸に縦方向の変化量をとり
+             color = pitch_name)) + # 球種ごとに色分けして
+  geom_point(alpha=0.5) # 散布図にする。球数が多くて点が重なり、わかりにくくなるのを避けるため、透明度を0.5と指定する</code></pre>
+<p><img src="R%E7%A4%BE%E5%86%85%E5%8B%89%E5%BC%B7%E4%BC%9A%E7%94%A8_files/figure-html/plot4-1.png" width="672" /></p>
+<p>WBC決勝で大谷がトラウトに投じた最後の１球は、横方向に大きくすべるSweeperという球種だったが、なるほどこのピンク色のやつですか、という感じ。</p>
+</div>
+</div>
+<div id="おまけ" class="section level2">
+<h2>おまけ</h2>
+<p>下記のコードは、各球種が全投球数に占める割合を、登板日ごとに示したものです。それぞれの関数が何をしているのか、考えてみましょう。</p>
+<p>ヒント：いっぺんに考えると難しいので、上から順番に少しずつ実行に移していくと、それぞれが何をやっているのかがわかりやすくなります。</p>
+<pre class="r"><code>ohtani_p %&gt;%
+ group_by(game_date,
+          pitch_name) %&gt;%
+ summarize(n=n()) %&gt;%
+ pivot_wider(names_from = pitch_name, 
+             values_from = n) %&gt;%
+ mutate(all=sum(`4-Seam Fastball`,
+                `Split-Finger`,
+                `Sweeper`,
+                `Cutter`,
+                `Curveball`,
+                `Slider`,
+                `Sinker`,
+                `Slow Curve`,
+                na.rm=TRUE)) %&gt;%
+  mutate(`4-Seam Fastball`=`4-Seam Fastball`/all,
+         `Split-Finger`=`Split-Finger`/all,
+         `Sweeper`=`Sweeper`/all,
+         `Cutter`=`Cutter`/all,
+         `Curveball`=`Curveball`/all,
+         `Slider`=`Slider`/all,
+         `Sinker`=`Sinker`/all,
+         `Slow Curve`=`Slow Curve`/all) %&gt;%
+  select(-all) %&gt;%
+  pivot_longer(cols=-c(game_date),
+               names_to = &quot;pitch_type&quot;,
+               values_to = &quot;ratio&quot;) %&gt;%
+  ggplot(aes(game_date,ratio,fill=pitch_type)) +
+  geom_bar(stat=&quot;identity&quot;) +
+  labs(title=&quot;投手・大谷の球種別割合の推移&quot;,
+       x=&quot;試合日&quot;,
+       y=&quot;割合&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by
+## &#39;game_date&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## Warning: Removed 151 rows containing missing
+## values (`position_stack()`).</code></pre>
+<p><img src="R%E7%A4%BE%E5%86%85%E5%8B%89%E5%BC%B7%E4%BC%9A%E7%94%A8_files/figure-html/plot5-1.png" width="672" /></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
